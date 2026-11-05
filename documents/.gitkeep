@@ -1,0 +1,1 @@
+Place the local `.txt` and `.md` documents you want the agent to search in this folder. The agent scans this folder recursively by default.
