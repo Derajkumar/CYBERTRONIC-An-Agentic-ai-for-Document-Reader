@@ -31,6 +31,22 @@ python agent.py "What is the sum of 2 and 3?"
 python run_tests.py
 ```
 
+### Project Structure 
+### CYBERTRO-An-Agentic-ai-for-Document-Reader
+|
+|-- documents/
+|   |-- docs/
+|   |   |-- deployment.txt
+|   |   |-- maintenance.txt
+|   |   `-- sample1.txt
+|
+|-- agent.py
+|-- tools.py
+|-- test.py
+|-- agent_log.jsonl
+`-- README.md
+```
+
 ### Test Results ✅  
 | Question | Expected Answer | Status |
 |----------|-----------------|--------|
