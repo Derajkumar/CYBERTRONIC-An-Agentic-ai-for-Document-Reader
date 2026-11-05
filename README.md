@@ -37,10 +37,11 @@ python run_tests.py
 | "What is the sum of 2 and 3?" | `5` | PASS |
 | "Where is 'foo bar' in markdown files?" | `./docs/faq.md: foo bar` | PASS |
 | Path-traversal attempt (`../etc/passwd`) | `"Path outside allowed folder"` | PASS |
-|Question> what is the server error
-|Server error: file not found
 
-|Question> service status
-|Transport service status: maintenance
-|Billing service owner: Noah Patel
+### Question> what is the server error
+Server error: file not found
+
+### Question> service status
+Transport service status: maintenance
+Billing service owner: Noah Patel
  
