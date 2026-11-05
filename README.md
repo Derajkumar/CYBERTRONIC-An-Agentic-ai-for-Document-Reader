@@ -1,63 +1,104 @@
-# 🤖 Cybertornic  
-## AI Agent for Secure Document Reader  
+# Cybertornic — AI Document Reader
 
-### What it does  
-Cybertornic is a **bounded reasoning agent** that answers questions about local documents *without* leaving your folder. It uses 3 safe tools:  
-- ✅ `search_files()` – Finds keywords in `.txt/.md` files  
-- ✅ `read_file()` – Reads content (blocks path traversal)  
-- ✅ `calculate()` – Safe math evaluation (no `eval`!)  
+A small command-line agent for asking questions about local `.txt` and `.md` files. It can search document text, read a file, and evaluate arithmetic using a restricted parser.
 
-### Why it’s different  
-| Feature | Benefit |
-|---------|---------|
-| **Folder-scoped only** | Never accesses files outside `./documents/` |
-| **No hallucinations** | Returns `"not found"` if no match exists |
-| **8-step max** | Prevents infinite loops (tested 10/10 cases pass) |
-| **Error-safe** | Logs all errors as JSON (`agent_log.jsonl`) |
+## Features
 
-### How to use  
+- **Local document search:** searches `.txt` and `.md` files under the selected folder.
+- **File reads constrained to that folder:** attempts to read paths outside it are rejected.
+- **Restricted calculator:** supports arithmetic without Python `eval()`.
+- **Bounded tool loop:** the agent stops after at most eight tool steps.
+- **JSONL logging:** tool calls and errors are recorded in `agent_log.jsonl` by default.
+- **Offline by default:** uses a deterministic local planner unless API mode is explicitly enabled.
+
+> **Privacy note:** In default offline mode, the planner does not make an API request. With `--api`, the agent sends prompts and tool results to the configured OpenAI-compatible API. Do not enable API mode for sensitive documents unless that service is approved for the data.
+
+## Requirements
+
+- Python 3. No third-party packages are required for offline mode.
+- API mode requires an API key and a compatible chat-completions endpoint.
+
+## Setup
+
+From the repository root, create and activate a virtual environment if desired:
+
 ```bash
-# 1. Install dependencies
-python -m venv .venv && source .venv/bin/activate
+python -m venv .venv
 
-# 2. Place docs in ./documents/
-cp sample.txt documents/
+# macOS/Linux
+source .venv/bin/activate
 
-# 3. Run a question
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+```
+
+Place the documents you want to query in `documents/` (create the folder if needed). The agent searches `.txt` and `.md` files recursively.
+
+## Usage
+
+Ask a one-off question:
+
+```bash
 python agent.py "What is the sum of 2 and 3?"
-# → Output: 5
-
-# 4. Full test suite (100% pass rate!)
-python run_tests.py
 ```
 
-### Project Structure 
-### CYBERTRO-An-Agentic-ai-for-Document-Reader
-|
-|-- documents/
-|   |-- docs/
-|   |   |-- deployment.txt
-|   |   |-- maintenance.txt
-|   |   `-- sample1.txt
-|
-|-- agent.py
-|-- tools.py
-|-- test.py
-|-- agent_log.jsonl
-`-- README.md
+Ask about documents in the default `documents/` folder:
+
+```bash
+python agent.py "What does the deployment guide say?"
 ```
 
-### Test Results ✅  
-| Question | Expected Answer | Status |
-|----------|-----------------|--------|
-| "What is the sum of 2 and 3?" | `5` | PASS |
-| "Where is 'foo bar' in markdown files?" | `./docs/faq.md: foo bar` | PASS |
-| Path-traversal attempt (`../etc/passwd`) | `"Path outside allowed folder"` | PASS |
+Choose a different document folder:
 
-### Question> what is the server error
-Server error: file not found
+```bash
+python agent.py --folder ./my-documents "Find the maintenance schedule"
+```
 
-### Question> service status
-Transport service status: maintenance
-Billing service owner: Noah Patel
- 
+Start interactive mode:
+
+```bash
+python agent.py
+```
+
+In interactive mode, enter questions at the `Question>` prompt. Use `/folder <path>` to switch folders, or type `exit` to quit.
+
+### Optional API mode
+
+Set `OPENAI_API_KEY` and, if needed, configure `OPENAI_MODEL` and `OPENAI_BASE_URL`, then run:
+
+```bash
+python agent.py --api "Summarize the maintenance notes"
+```
+
+The default API base URL is `https://api.openai.com/v1`. API mode sends prompts and tool outputs to that endpoint.
+
+## Tools and safeguards
+
+- `search_files(query)` searches lines in `.txt` and `.md` files. Use `*` to list matching file names.
+- `read_file(path)` reads a `.txt` or `.md` file inside the selected folder and rejects paths that resolve outside it.
+- `calculate(expression)` evaluates numeric arithmetic using an allowlist of operators.
+- Tool execution has a five-second timeout, and the planner has a maximum of eight steps.
+
+These safeguards limit what the agent's tools can do; they are not a substitute for reviewing code or protecting sensitive data.
+
+## Tests
+
+The repository includes `test.py`. Run it from the repository root with:
+
+```bash
+python test.py
+```
+
+The script currently has a known issue: it references an unset `expected` variable for test cases whose expected value is `None`, so it may stop before completing the suite. No pass-rate claim is made here.
+
+## Project layout
+
+```text
+.
+├── agent.py          # CLI, planner, tool orchestration, and logging
+├── tools.py          # Document search/read and restricted calculator
+├── test.py           # Basic test script
+├── documents/        # Add your .txt and .md files here
+├── agent_log.jsonl   # Runtime log (created/appended when the agent runs)
+└── README.md
+```
